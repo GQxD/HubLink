@@ -49,6 +49,7 @@ Suppose the parent folder contains the following directories:
 - To select all directories: enter `*` or `all`.
 - To exclude the `Folder 2` directory: enter `all-except 1`.
 - To select only `Folder 1` and `Folder 3`: enter `0,2`.
+- To select `Folder 1` to `Folder 3` : enter 1-3
 
 ## Notes
 - If a file with the same name already exists in the central folder, it will be skipped.
