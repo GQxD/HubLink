@@ -8,6 +8,7 @@ This PowerShell script automates the creation of symbolic links for files from s
   - Select specific directories by entering their indices.
   - Select all directories using `*` or `all`.
   - Exclude specific directories using `all-except` followed by indices (e.g., `all-except 1,3`).
+  - Select a range of directories using a hyphen (e.g., `12-23`).
 - **Symbolic Link Creation**:
   - Creates symbolic links for all files in the selected directories.
   - Places the symbolic links in a central folder (`Files_links`).

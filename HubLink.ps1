@@ -1,13 +1,29 @@
 # Define the parent folder where the directories are located
-$parentFolder = "F:\Testhublink"
+# Replace "G:\Your\path\here" with the actual path to your parent folder
+$parentFolder = "G:\Your\path\here"
+
+# Check if the user has updated the path
+if ($parentFolder -eq "G:\Your\path\here") {
+    Write-Host "Please update the variable 'parentFolder' with the correct path to your directory."
+    exit
+}
 
 # Retrieve all directories in the parent folder
 $dossiers = Get-ChildItem -Path $parentFolder -Directory
 
-# Display the list of directories with numbers for user selection
+# Display the parent folder path
+Write-Host "Parent folder: $parentFolder"
+
+# Check if there are any valid directories
+if ($dossiers.Count -eq 0) {
+    Write-Host "No directories were found in the parent folder."
+    exit
+}
+
 Write-Host "Select the folders to include (separated by commas):"
 Write-Host "Enter '*' or 'all' to select all folders."
 Write-Host "Enter 'all-except' followed by indices (e.g., 'all-except 1,3') to select all folders except specific ones."
+Write-Host "Enter a range (e.g., '12-23') to select folders within that range."
 for ($i = 0; $i -lt $dossiers.Count; $i++) {
     Write-Host "$i : $($dossiers[$i].Name)"
 }
@@ -15,59 +31,56 @@ for ($i = 0; $i -lt $dossiers.Count; $i++) {
 # Read the user's input for selected folder numbers
 $choix = Read-Host "Enter your selection"
 
-# Check if the user wants to select all folders
-if ($choix -eq "*" -or $choix -eq "all") {
-    # Select all folders
-    $sourcePaths = $dossiers.FullName
-    Write-Host "All folders have been selected."
-} elseif ($choix -like "all-except*") {
-    # Handle the "all-except" option
-    $exclusions = $choix -replace "all-except", "" -split "," | ForEach-Object { $_.Trim() }
-    $validExclusions = @()
-
-    # Validate the excluded indices
-    foreach ($index in $exclusions) {
-        if ($index -match "^\d+$" -and $index -ge 0 -and $index -lt $dossiers.Count) {
-            $validExclusions += [int]$index
-        } else {
-            Write-Host "Invalid exclusion number: $index. Please enter valid numbers between 0 and $($dossiers.Count - 1)."
-        }
+# Expand ranges like "12-23" into individual numbers
+$choix = $choix -replace "\s", ""  # Remove any spaces
+$indexChoisis = @()
+foreach ($part in $choix -split ",") {
+    if ($part -match "^\d+-\d+$") {
+        # Handle ranges like "12-23"
+        $start, $end = $part -split "-"
+        $indexChoisis += ($start..$end)
+    } elseif ($part -match "^\d+$") {
+        # Handle single numbers
+        $indexChoisis += [int]$part
+    } elseif ($part -eq "*" -or $part -eq "all") {
+        # Handle "all" selection
+        $indexChoisis += (0..($dossiers.Count - 1))
+    } else {
+        Write-Host "Invalid input: $part. Please enter valid numbers, ranges (e.g., 1,3,5-8), or '*' for all."
     }
-
-    # Select all folders except the excluded ones
-    $sourcePaths = $dossiers | Where-Object { -not ($dossiers.IndexOf($_) -in $validExclusions) } | ForEach-Object { $_.FullName }
-    Write-Host "All folders except the following have been selected:"
-    $validExclusions | ForEach-Object { Write-Host "$_ : $($dossiers[$_].Name)" }
-} else {
-    # Split the user's input by commas and trim any extra spaces
-    $indexChoisis = $choix -split "," | ForEach-Object { $_.Trim() }
-
-    # Validate the selected indices to ensure they are valid numbers within range
-    $validIndices = @()
-    foreach ($index in $indexChoisis) {
-        if ($index -match "^\d+$" -and $index -ge 0 -and $index -lt $dossiers.Count) {
-            $validIndices += $index
-        } else {
-            Write-Host "Invalid number: $index. Please enter valid numbers between 0 and $($dossiers.Count - 1)."
-        }
-    }
-
-    # If no valid indices are found, stop the script
-    if ($validIndices.Count -eq 0) {
-        Write-Host "No valid folders were selected. The script will stop."
-        exit
-    }
-
-    # Retrieve the full paths of the selected folders
-    $sourcePaths = $validIndices | ForEach-Object { $dossiers[$_].FullName }
 }
+
+# Validate the selected indices to ensure they are valid numbers within range
+$validIndices = @()
+foreach ($index in $indexChoisis) {
+    if ($index -ge 0 -and $index -lt $dossiers.Count) {
+        $validIndices += $index
+    } else {
+        Write-Host "Invalid number: $index. Please enter valid numbers between 0 and $($dossiers.Count - 1)."
+    }
+}
+
+# If no valid indices are found, stop the script
+if ($validIndices.Count -eq 0) {
+    Write-Host "No valid folders were selected. The script will stop."
+    exit
+}
+
+# Retrieve the full paths of the selected folders
+$sourcePaths = $validIndices | ForEach-Object { $dossiers[$_].FullName }
 
 # Display the selected folders for verification
 Write-Host "Selected folders:"
 $sourcePaths
 
 # Define the target path and the name of the folder where symbolic links will be created
-$targetPath = "F:\Testhublink"
+# Replace "G:\Your\path\here" with the actual path to your target folder
+$targetPath = "G:\Your\path\here"
+# Check if the user has updated the path
+if ($targetPath -eq "G:\Your\path\here") {
+    Write-Host "Please update the variable 'targetPath' with the correct path to your target directory."
+    exit
+}
 $linkFolderName = "Files_links"  # Change the name here if needed
 $fullPath = Join-Path -Path $targetPath -ChildPath $linkFolderName
 
@@ -92,8 +105,8 @@ foreach ($sourcePath in $sourcePaths) {
         continue
     }
 
-    # Retrieve all files in the subdirectories of the source path
-    Get-ChildItem -Path $sourcePath -Recurse -File | ForEach-Object {
+    # Retrieve all .aris files in the subdirectories of the source path
+    Get-ChildItem -Path $sourcePath -Recurse -File -Filter "*.aris" | ForEach-Object {
         # Define the symbolic link name in the target folder
         $linkName = Join-Path $fullPath $_.Name
 
