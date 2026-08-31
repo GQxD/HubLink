@@ -1,6 +1,25 @@
-# Define the parent folder where the directories are located
-# Replace "G:\Your\path\here" with the actual path to your parent folder
-$parentFolder = $PSScriptRoot
+# Determine the folder the script/exe lives in.
+# $PSScriptRoot works when run as a .ps1, but is empty when compiled to an
+# .exe (ps2exe), so fall back to the running assembly's location in that case.
+if ($PSScriptRoot) {
+    $parentFolder = $PSScriptRoot
+} else {
+    $entryAssembly = [System.Reflection.Assembly]::GetEntryAssembly()
+    if ($entryAssembly -and $entryAssembly.Location) {
+        $parentFolder = Split-Path -Parent $entryAssembly.Location
+    } else {
+        $parentFolder = (Get-Location).Path
+    }
+}
+
+# Pause helper so the console window stays open when the .exe is double-clicked.
+$runningAsExe = -not $PSScriptRoot
+function Wait-BeforeExit {
+    if ($runningAsExe) {
+        Write-Host ""
+        Read-Host "Press Enter to close"
+    }
+}
 
 
 # Retrieve all directories in the parent folder
@@ -12,6 +31,7 @@ Write-Host "Parent folder: $parentFolder"
 # Check if there are any valid directories
 if ($dossiers.Count -eq 0) {
     Write-Host "No directories were found in the parent folder."
+    Wait-BeforeExit
     exit
 }
 
@@ -58,6 +78,7 @@ foreach ($index in $indexChoisis) {
 # If no valid indices are found, stop the script
 if ($validIndices.Count -eq 0) {
     Write-Host "No valid folders were selected. The script will stop."
+    Wait-BeforeExit
     exit
 }
 
@@ -69,7 +90,7 @@ Write-Host "Selected folders:"
 $sourcePaths
 
 # Define the target path and the name of the folder where symbolic links will be created
-$targetPath = $PSScriptRoot
+$targetPath = $parentFolder
 $linkFolderName = "Files_links"  # Change the name here if needed
 $fullPath = Join-Path -Path $targetPath -ChildPath $linkFolderName
 
@@ -123,3 +144,4 @@ foreach ($sourcePath in $sourcePaths) {
 
 # Indicate that all symbolic links have been processed
 Write-Host "All symbolic links have been processed!"
+Wait-BeforeExit
