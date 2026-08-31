@@ -1,4 +1,4 @@
-# HubLink Script
+# HubLink Script-
 
 ## Description
 This PowerShell script automates the creation of symbolic links for `.aris` files found in selected directories, gathering them into a single central folder. It lets you centralize access to scattered `.aris` files without duplicating them on disk.
