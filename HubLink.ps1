@@ -1,12 +1,7 @@
 # Define the parent folder where the directories are located
 # Replace "G:\Your\path\here" with the actual path to your parent folder
-$parentFolder = "G:\Your\path\here"
+$parentFolder = $PSScriptRoot
 
-# Check if the user has updated the path
-if ($parentFolder -eq "G:\Your\path\here") {
-    Write-Host "Please update the variable 'parentFolder' with the correct path to your directory."
-    exit
-}
 
 # Retrieve all directories in the parent folder
 $dossiers = Get-ChildItem -Path $parentFolder -Directory
@@ -74,13 +69,7 @@ Write-Host "Selected folders:"
 $sourcePaths
 
 # Define the target path and the name of the folder where symbolic links will be created
-# Replace "G:\Your\path\here" with the actual path to your target folder
-$targetPath = "G:\Your\path\here"
-# Check if the user has updated the path
-if ($targetPath -eq "G:\Your\path\here") {
-    Write-Host "Please update the variable 'targetPath' with the correct path to your target directory."
-    exit
-}
+$targetPath = $PSScriptRoot
 $linkFolderName = "Files_links"  # Change the name here if needed
 $fullPath = Join-Path -Path $targetPath -ChildPath $linkFolderName
 
